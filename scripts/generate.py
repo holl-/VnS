@@ -59,8 +59,26 @@ def build_html(playlist_data: dict, playlist_title: str) -> str:
   .video-wrap iframe{{width:100%;height:100%;border-radius:8px;border:0;background:#000}}
   .controls{{flex:1;display:flex;flex-direction:column;gap:10px}}
   .big-controls{{display:flex;gap:10px;align-items:center}}
-  button{{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--text);padding:8px 12px;border-radius:8px;cursor:pointer}}
-  button.primary{{background:linear-gradient(90deg,var(--accent),#00c4ff);border:none;color:#071227;font-weight:600}}
+  button{{
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.06);
+      color: var(--text);
+      width: 46px;
+      height: 46px;
+      border-radius: 10px;
+      font-size: 20px;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+  }}
+  button.primary{{
+    background: linear-gradient(90deg,var(--accent),#00c4ff);
+    border: none;
+    color: #071227;
+    font-weight: 600;
+  }}
   .track-list{{margin-top:14px;display:flex;gap:12px}}
   .list{{background:rgba(255,255,255,0.02);border-radius:10px;padding:10px;flex:1;max-height:360px;overflow:auto}}
   .track{{padding:10px;border-radius:8px;display:flex;gap:12px;align-items:center;cursor:pointer}}
@@ -92,9 +110,9 @@ def build_html(playlist_data: dict, playlist_title: str) -> str:
         </div>
         <div class="controls">
           <div class="big-controls">
-            <button id="prevBtn">⟵ Prev</button>
-            <button id="playBtn" class="primary">Play</button>
-            <button id="nextBtn">Next ⟶</button>
+            <button id="prevBtn">⏮</button>
+            <button id="playBtn" class="primary">▶</button>
+            <button id="nextBtn">⏭</button>
             <div style="margin-left:auto;color:var(--muted);font-size:13px" id="timeLabel">—</div>
           </div>
           <div class="track-list">
@@ -198,16 +216,22 @@ function onPlayerReady(){{
   resizePlayer();
   highlightActive();
   updateTimeLabel();
+  
+  // Force initial seek to track[0].start without autoplay
+  const t = tracks[0];
+  if (t && player && player.seekTo) {{
+    player.seekTo(t.start || 0, true);
+  }}
 }}
 
 function onPlayerStateChange(e){{
   if (e.data === YT.PlayerState.PLAYING){{
     isPlaying = true;
-    document.getElementById('playBtn').textContent = 'Pause';
+    document.getElementById('playBtn').textContent = '⏸';
     startLoopWatcher();
   }} else {{
     isPlaying = false;
-    document.getElementById('playBtn').textContent = 'Play';
+    document.getElementById('playBtn').textContent = '▶';
     stopLoopWatcher();
   }}
   updateTimeLabel();
@@ -269,9 +293,20 @@ document.getElementById('nextBtn').onclick = () => {{
   playIndex((currentIndex + 1) % tracks.length, true);
 }};
 document.getElementById('playBtn').onclick = () => {{
+  if (!player) return;
+
   const state = player.getPlayerState();
-  if (state === YT.PlayerState.PLAYING) player.pauseVideo();
-  else player.playVideo();
+  const t = tracks[currentIndex];
+
+  // Always ensure correct start before play
+  if (state !== YT.PlayerState.PLAYING) {{
+    player.seekTo(t.start || 0, true);
+    setTimeout(() => player.playVideo(), 50);
+    return;
+  }}
+
+  // If already playing, pause
+  player.pauseVideo();
 }};
 
 window.onYouTubeIframeAPIReady = onYouTubeIframeAPIReady;
