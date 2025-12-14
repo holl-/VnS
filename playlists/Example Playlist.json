@@ -1,0 +1,55 @@
+{
+  "majorVersion": 0,
+  "minorVersion": 2,
+  "tracks": [
+    {
+      "name": "Far, Far Away \u2022 Beat Mekanik",
+      "url": "Beat Mekanik_Far, Far Away.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://freemusicarchive.org/home"
+    },
+    {
+      "name": "Flashy \u2022 Beat Mekanik",
+      "url": "Beat Mekanik_Flashy.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://freemusicarchive.org/home"
+    },
+    {
+      "name": "Up & Away \u2022 Vlad Annenkov",
+      "url": "Vlad Annenkov_Up & Away.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://freemusicarchive.org/home"
+    },
+    {
+      "name": "Hustle \u2022 Kevin MacLeod",
+      "url": "Kevin MacLeod_Hustle.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://freemusicarchive.org/home"
+    },
+    {
+      "name": "Flashback \u2022 Beat Mekanik",
+      "url": "Beat Mekanik_Flashback.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://freemusicarchive.org/home"
+    },
+    {
+      "name": "Diversity \u2022 A. Cooper",
+      "url": "A. Cooper_Diversity.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://freemusicarchive.org/home"
+    },
+    {
+      "name": "Flowers \u2022 Cedric Galke x Fachhochschule Dortmund",
+      "url": "Cedric Galke x Fachhochschule Dortmund_Flowers.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://freemusicarchive.org/home"
+    }
+  ]
+}
