@@ -9,68 +9,56 @@ OUT_DIR = ROOT / "out"
 
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
-# Read playlists
 playlist_files = [f for f in PLAYLISTS_DIR.glob("*.json")]
-
-if not playlist_files:
-    print("No playlist JSON files found in playlists/, nothing to do.")
-    exit(0)
-
-
 AUDIO_EXTS = {".mp3", ".ogg", ".wav"}
-
-def is_audio_url(url: str) -> bool:
-    return any(url.lower().endswith(ext) for ext in AUDIO_EXTS)
-
-def is_remote_url(url: str) -> bool:
-    return url.startswith("http://") or url.startswith("https://")
-
 
 OUT_AUDIO_DIR = OUT_DIR / "audio"
 OUT_AUDIO_DIR.mkdir(parents=True, exist_ok=True)
 
-
 # ---- Generate HTML files ----
-
 index_entries = []
 
 for f in playlist_files:
     with open(f, "r", encoding="utf-8") as fp:
-        try:
-            data = json.load(fp)
-        except Exception as e:
-            print(f"Skipping invalid JSON: {f} ({e})")
-            continue
-
-    for t in data.get("tracks", []):
+        data = json.load(fp)
+    playlist_name = data.get("name", f.stem)
+    mp3_tracks = [t for t in data.get("tracks", []) if any(t['url'].lower().endswith(ext) for ext in AUDIO_EXTS) and not t['url'].startswith('http')]
+    supports_download = bool(mp3_tracks)
+    filename = slugify(playlist_name) + ".html"
+    download_file = slugify(playlist_name) + "-download.html" if supports_download else None
+    for t in mp3_tracks:
         url = t.get("url")
-        if not url or not is_audio_url(url):
-            continue
-        # Skip remote audio
-        if is_remote_url(url):
-            continue
         src = ROOT / 'audio' / url
         if not src.exists():
             print(f"Warning: audio file not found: {src}")
             continue
         dst = OUT_AUDIO_DIR / src.name
         dst.write_bytes(src.read_bytes())
-        # Rewrite URL for the generated HTML
-        t["url"] = f"audio/{src.name}"
         print("Copying to", dst)
-
-    playlist_name = data.get("name", f.stem)
-    filename = slugify(playlist_name) + ".html"
-    outpath = OUT_DIR / filename
-
+        t["url"] = f"audio/{src.name}"
+    # --- Write HTML ---
+    index_entries.append((playlist_name, filename, f.name))
     with (Path(__file__).parent / "player_template.html").open('r', encoding='utf-8') as file:
         html_text = file.read()
     html_text = html_text.replace("{playlist_title}", escape(playlist_name))
     html_text = html_text.replace("{playlist_data}", json.dumps(data, indent=2))
-    outpath.write_text(html_text, encoding="utf-8")
-
-    print("Wrote", outpath)
-    index_entries.append((playlist_name, filename, f.name))
+    if supports_download:
+        html_text = html_text.replace("{download_link}", f'<p><a href="{download_file}">Herunterladen</a></p>')
+        with (Path(__file__).parent / "download_template.html").open('r', encoding='utf-8') as file:
+            download_html = file.read()
+        download_html = download_html.replace("{playlist_title}", escape(playlist_name))
+        download_html = download_html.replace("{playlist_link}", filename)
+        items = []
+        with (Path(__file__).parent / "download_item_template.html").open('r', encoding='utf-8') as file:
+            li_html = file.read()
+        for mp3 in mp3_tracks:
+            items.append(li_html.replace("{name}", mp3['name']).replace("{url}", mp3['source']).replace("{download_link}", mp3['url']))
+        download_html = download_html.replace("{items}", "\n".join(items))
+        (OUT_DIR / download_file).write_text(download_html, encoding="utf-8")
+    else:
+        html_text = html_text.replace("{download_link}", "")
+    (OUT_DIR / filename).write_text(html_text, encoding="utf-8")
+    print("Wrote", filename, download_file)
 
 
 # ---- Build index.html ----

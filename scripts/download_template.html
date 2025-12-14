@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Vibe & Seek – {playlist_title}</title>
+<style>
+  :root{
+    --bg:#0f1724; --card:#0b1220; --muted:#9aa4b2; --accent:#7c4dff; --text:#e6eef7;
+  }
+  html,body{height:100%;margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial;}
+  body{background:linear-gradient(180deg,#071227 0%, #0b1726 100%);color:var(--text);display:flex;align-items:flex-start;justify-content:center;padding:28px;}
+  .container{width:100%;max-width:980px;}
+  header{display:flex;align-items:center;gap:16px;margin-bottom:18px}
+  h1{margin:0;font-size:20px;letter-spacing:0.2px}
+  .subtitle{color:var(--muted);font-size:13px;margin-top:4px}
+  .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px;padding:14px;box-shadow:0 6px 20px rgba(2,6,23,0.6)}
+  .player-row{display:flex;gap:14px;align-items:center}
+  .video-wrap{flex:0 0 500px;height:80px;max-width:100%}
+  .video-wrap iframe{width:100%;height:100%;border-radius:8px;border:0;background:#000}
+  .controls{flex:1;display:flex;flex-direction:column;gap:10px}
+  .big-controls{display:flex;gap:10px;align-items:center}
+  button{
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.06);
+      color: var(--text);
+      width: 46px;
+      height: 46px;
+      border-radius: 10px;
+      font-size: 20px;
+      line-height: 1;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+  }
+  button.primary{
+    background: linear-gradient(90deg,var(--accent),#00c4ff);
+    border: none;
+    color: #071227;
+    font-weight: 600;
+  }
+  .download-button{
+    background: linear-gradient(90deg,var(--accent),#00c4ff);
+    border: none;
+    color: #071227;
+    border-radius: 10px;
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 12px;
+    display: inline-flex;
+  }
+  .track-list{margin-top:14px;display:flex;gap:12px}
+  .list{background:rgba(255,255,255,0.02);border-radius:10px;padding:10px;flex:1;max-height:360px;overflow:auto}
+  .track{padding:10px;border-radius:8px;display:flex;gap:12px;align-items:center;cursor:pointer}
+  .track:hover{background:rgba(255,255,255,0.02)}
+  .track .idx{width:28px;text-align:center;color:var(--muted);font-size:13px}
+  .track .title{font-size:14px}
+  .track.active{background:linear-gradient(90deg, rgba(124,77,255,0.12), rgba(0,196,255,0.06));box-shadow:0 4px 14px rgba(12,8,32,0.6)}
+  footer{margin-top:10px;color:var(--muted);font-size:13px}
+  @media (max-width:640px){
+    .player-row{flex-direction:column;align-items:stretch}
+    .video-wrap{height:64px;flex-basis:auto}
+    .controls{order:2}
+  }
+  .filename {
+    flex: 1;
+    color: #FFFFFF;
+    font-weight: 100;
+   }
+  .download-icon {
+    width: 16px;
+    height: 16px;
+    color: #000000;
+  }
+  .original-link {
+    color: #007bff;
+    text-decoration: none;
+    font-size: 11px;
+    padding: 6px 8px;
+    border: 1px solid #007bff;
+    border-radius: 6px;
+    transition: all 0.2s;
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+        <h1>Vibe & Seek</h1>
+        <div class="subtitle">{playlist_title}</div>
+      </div>
+    </header>
+
+    <div class="card">
+      <ul>
+        {items}
+      </ul>
+    </div>
+
+    <div>
+      <button class="primary" onclick="downloadAll()">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </button>
+    <span class="filename">Alle herunterladen (ZIP)</span>
+    </div>
+
+    <footer>
+      <p><a href="{playlist_link}">Zurück zur Playlist</a></p>
+      <p><a href="index.html">Andere Playlists</a></p>
+      <p>Impresum: Philipp Holl – philipp@mholl.de</p></footer>
+  </div>
+
+<script>
+
+function downloadFile(url) {
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = ''; // optionally set a filename, e.g. 'song.mp3'
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+}
+
+
+const filesToDownload = [
+  {
+    url: "docs/source1.md",
+    outputName: "Introduction.md"
+  },
+  {
+    url: "docs/source2.md",
+    outputName: "Setup_Guide.md"
+  },
+  {
+    url: "examples/example.js",
+    outputName: "Sample_Code.js"
+  }
+];
+
+document.getElementById("download").onclick = async () => {
+  const zip = new JSZip();
+  for (const file of filesToDownload) {
+    const url = file.url;
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch ${file.githubPath}`);
+    }
+    const content = await response.blob();
+    zip.file(file.outputName, content);
+  }
+  const zipBlob = await zip.generateAsync({ type: "blob" });
+  saveAs(zipBlob, "selected-files.zip");
+};
+
+</script>
+</body>
+</html>
