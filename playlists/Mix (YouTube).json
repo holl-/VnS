@@ -1,0 +1,24 @@
+{
+  "majorVersion": 0,
+  "minorVersion": 2,
+  "tracks": [
+    {
+      "name": "Bard Dance \u2022 Baldur's Gate 3 \u2022 Borislav Slavov",
+      "url": "https://www.youtube.com/watch?v=wk7xOKXw5wA",
+      "start": 22.0,
+      "end": null
+    },
+    {
+      "name": "Sand Castle \u2022 Lego Builder's Journey \u2022 Henrik Lindstrand",
+      "url": "https://www.youtube.com/watch?v=h74tk_AV_3w",
+      "start": null,
+      "end": null
+    },
+    {
+      "name": "Main Theme \u2022 1492: Conquest of Paradise \u2022 Vangelis",
+      "url": "https://youtu.be/7ufkMTshjz8?si=8y-N5iKQv8dY_J_R",
+      "start": 19.0,
+      "end": null
+    }
+  ]
+}
