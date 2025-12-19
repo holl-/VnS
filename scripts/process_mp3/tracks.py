@@ -1,8 +1,16 @@
+import re
 from dataclasses import dataclass
 from functools import cached_property
 from pathlib import Path
 from mutagen.id3 import ID3, TIT2, TPE1, TALB, TRCK, TIT3, TPE2, TCON, COMM
 from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
+
+
+def slugify(name: str) -> str:
+    name = name.lower()
+    name = re.sub(r"[^a-z0-9]+", "-", name)
+    name = re.sub(r"^-|-$", "", name)
+    return name
 
 
 @dataclass(eq=False, unsafe_hash=False)
@@ -16,6 +24,8 @@ class Track:
     genre: str
     tags: list[str]
     file_path: Path = None
+    number: int = None
+    playlist_name: str = None
 
     def apply_id3(self, file: str, number: int, playlist_name: str):
         tags = ID3()
@@ -42,13 +52,12 @@ class Track:
             title += f" ({self.subtitle})"
         return f"{title} • {self.album} • {self.artist}" if self.album else f"{title} • {self.artist}"
 
-    @property
-    def output_filename(self):
-        return f"{self.artist} - {self.title}.mp3"
+    def get_output_filename(self, number: int):
+        return f"{number:03d} {slugify(self.artist)} - {slugify(self.title)}.mp3"
 
     @property
     def is_hosted_externally(self):
-        return self.url and 'youtu' in self.url
+        return self.url and 'youtu' in self.url and not self.url.rstrip('/').endswith('audiolibrary')
 
     @cached_property
     def parsed_url(self):
@@ -70,14 +79,14 @@ class Track:
         return float(time_str) if time_str else None
 
 
-def search_track(display_name: str, url: str, tracks: list[Track]):
+def search_track(display_name: str, url: str, number: int, tracks: list[Track]):
     matches = [t for t in tracks if t.display_name == display_name]
     if not matches:
          return None
     elif len(matches) == 1:
         return matches[0]
     else:  # multiple matches
-        matches = [t for t in matches if t.output_filename == url]
+        matches = [t for t in matches if t.get_output_filename(number) == url]
         assert len(matches) <= 1
         return matches[0] if matches else None
 
@@ -101,7 +110,7 @@ def track_from_file(path: Path) -> Track:
     # --- Construct Track ---
     tags = [t.strip() for t in path.stem.split(' ') if len(t.strip()) > 2 and t.strip().lower() not in {'the',}] + ([genre] if genre else [])
     for comment in comments.values():
-        if '.org' in comment:
+        if '.org' in comment and not comment.startswith('http'):
             comment = 'https://' + comment
         if comment.startswith('http'):
             source = comment

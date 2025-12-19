@@ -1,9 +1,10 @@
 import json
-import shutil
 import random
 from pathlib import Path
 
-from tracks import track_from_file, Track, search_track
+from html_gen.generate import generate_playlist_html
+from process_mp3.compress import compress_mp3_vbr_parallel
+from process_mp3.tracks import track_from_file, Track, search_track
 
 
 def score_similarity(tags_a, tags_b):
@@ -29,8 +30,7 @@ def greedy_shuffle(tracks: list[Track]) -> list[Track]:
 
 
 def create_shuffled_playlist(src_dir: Path, amend=True):
-    output_dir = Path(__file__).parent.parent / 'audio'
-    output_dir.mkdir(exist_ok=True)
+    output_dir = Path(__file__).parent.parent / 'docs' / 'audio'
     playlist_name = src_dir.name
     playlist_file = Path(__file__).parent.parent / 'playlists' / (playlist_name + ".json")
     if playlist_file.is_file():
@@ -47,32 +47,43 @@ def create_shuffled_playlist(src_dir: Path, amend=True):
     all_tracks = [track_from_file(file) for file in src_dir.iterdir() if file.name.endswith('.mp3')]
     ordered = []
     if amend:
-        for existing in playlist_data['tracks']:
-            matching_track = search_track(existing['name'], existing['url'], all_tracks)
+        for i, existing in enumerate(playlist_data['tracks'], 1):
+            matching_track = search_track(existing['name'], existing['url'], i, all_tracks)
             if matching_track:
                 ordered.append(matching_track)
+            else:
+                print(f"Track removed: {existing['name']}")
     remaining = set(all_tracks) - set(ordered)
     if remaining:
         ordered = ordered + greedy_shuffle(list(remaining))
     # --- Shuffle & write ---
     track_data = []
+    hosted_src: list[Track] = []
+    hosted_dst: list[Path] = []
     for i, track in enumerate(ordered, 1):
+        track.number = i
+        track.playlist_name = playlist_name
         if not track.is_hosted_externally:
-            dst = output_dir / f"{track.artist} - {track.title}.mp3"
-            shutil.copy2(track.file_path, dst)
-            track.apply_id3(str(dst), i, playlist_name)
+            if 'Erik' in track.title:
+                print()
+            dst = output_dir / track.get_output_filename(i)
+            hosted_src.append(track)
+            hosted_dst.append(dst)
             track_data.append({"name": track.display_name, "url": dst.name, "start": 0., "end": None, "source": track.url})
         else:  # YouTube
             track_data.append({"name": track.display_name, "url": track.clean_url, "start": track.start_time, "end": None})
-        # ToDo also copy as {i:03d}_...mp3
     playlist_data['tracks'] = track_data
     with playlist_file.open('w', encoding='utf-8') as f:
         json.dump(playlist_data, f, indent=2)
-    print(f"✅ Done! {len(ordered)} audio files copied to", output_dir)
+    print(f"✅ Created playlist {src_dir.name}! {len(hosted_src)} / {len(ordered)} audio files will be hosted", output_dir)
+    return playlist_file, playlist_name, hosted_src, hosted_dst
 
 
 if __name__ == "__main__":
-    for playlist_dir in (Path(__file__).parent.parent / 'source_playlists').iterdir():
+    ROOT = Path(__file__).parent.parent
+    for playlist_dir in (ROOT / 'source_playlists').iterdir():
         if not playlist_dir.name.startswith('_'):
             print(f"Creating playlist from '{playlist_dir.name}'")
-            create_shuffled_playlist(playlist_dir)
+            file, name, hosted_tracks, hosted_paths = create_shuffled_playlist(playlist_dir, amend=True)
+            compress_mp3_vbr_parallel(hosted_tracks, hosted_paths, overwrite=False)
+    generate_playlist_html(ROOT / 'playlists', ROOT / 'docs')
