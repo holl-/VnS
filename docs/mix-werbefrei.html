@@ -1,0 +1,1129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Vibe & Seek – Mix (werbefrei)</title>
+<style>
+  :root{
+    --bg:#0f1724; --card:#0b1220; --muted:#9aa4b2; --accent:#7c4dff; --text:#e6eef7;
+  }
+  html,body{height:100%;margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial;}
+  body{background:linear-gradient(180deg,#071227 0%, #0b1726 100%);color:var(--text);display:flex;align-items:flex-start;justify-content:center;padding:28px;}
+  .container{width:100%;max-width:980px;}
+  header{display:flex;align-items:center;gap:16px;margin-bottom:18px}
+  h1{margin:0;font-size:20px;letter-spacing:0.2px}
+  .subtitle{color:var(--muted);font-size:13px;margin-top:4px}
+  .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px;padding:14px;box-shadow:0 6px 20px rgba(2,6,23,0.6)}
+  .player-row{display:flex;gap:14px;align-items:center}
+  .video-wrap{flex:0 0 500px;height:80px;max-width:100%}
+  .video-wrap iframe{width:100%;height:100%;border-radius:8px;border:0;background:#000}
+  .controls{flex:1;display:flex;flex-direction:column;gap:10px}
+  .big-controls{display:flex;gap:10px;align-items:center}
+  button{
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.06);
+      color: var(--text);
+      width: 46px;
+      height: 46px;
+      border-radius: 10px;
+      font-size: 20px;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+  }
+  button.primary{
+    background: linear-gradient(90deg,var(--accent),#00c4ff);
+    border: none;
+    color: #071227;
+    font-weight: 600;
+  }
+  .track-list{margin-top:14px;display:flex;gap:12px}
+  .list{background:rgba(255,255,255,0.02);border-radius:10px;padding:10px;flex:1;max-height:360px;overflow:auto}
+  .track{padding:10px;border-radius:8px;display:flex;gap:12px;align-items:center;cursor:pointer}
+  .track:hover{background:rgba(255,255,255,0.02)}
+  .track .idx{width:28px;text-align:center;color:var(--muted);font-size:13px}
+  .track .title{font-size:14px}
+  .track.active{background:linear-gradient(90deg, rgba(124,77,255,0.12), rgba(0,196,255,0.06));box-shadow:0 4px 14px rgba(12,8,32,0.6)}
+  footer{margin-top:10px;color:var(--muted);font-size:13px}
+  @media (max-width:640px){
+    .player-row{flex-direction:column;align-items:stretch}
+    .video-wrap{height:64px;flex-basis:auto}
+    .controls{order:2}
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+        <h1>Vibe & Seek</h1>
+        <div class="subtitle">Mix (werbefrei)</div>
+      </div>
+    </header>
+
+    <div class="card">
+      <div class="player-row">
+        <div class="video-wrap" id="video-wrap">
+          <div id="player-container"></div>
+        </div>
+        <div class="controls">
+          <div class="big-controls">
+            <button id="prevBtn">⏮</button>
+            <button id="playBtn" class="primary">▶</button>
+            <button id="nextBtn">⏭</button>
+            <div style="margin-left:auto;color:var(--muted);font-size:13px" id="timeLabel">—</div>
+          </div>
+          <div class="track-list">
+            <div class="list" id="trackList"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <p><a href="index.html">Andere Playlists</a></p>
+      <p><a href="mix-werbefrei-download.html">Herunterladen</a></p>
+      <p>Impressum: Philipp Holl – philipp@mholl.de</p></footer>
+  </div>
+
+<script>
+const PLAYLIST = {
+  "majorVersion": 2,
+  "minorVersion": 8,
+  "tracks": [
+    {
+      "name": "Nightlight \u2022 Nightlight \u2022 Johnathon M. Horner",
+      "url": "audio/001 johnathon-m-horner - nightlight.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://freemusicarchive.org/music/beat-mekanik/single/nightlight/"
+    },
+    {
+      "name": "Tayata Om Bekanze Chant \u2022 John Lopker 2025 \u2022 John Lopker",
+      "url": "audio/002 john-lopker - tayata-om-bekanze-chant.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://freemusicarchive.org/music/john-lopker/meditation-chants/tayata-om-bekanze-chant/"
+    },
+    {
+      "name": "Cybernetic Dreams \u2022 Alex- Productions ( No Copyright Music )",
+      "url": "audio/003 alex-productions-no-copyright-music - cybernetic-dreams.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://www.audiolibrary.com.co/alex-productions/cybernetic-dreams"
+    },
+    {
+      "name": "P. I. Tchaikovsky: Dance of the Sugar Plum Fairy \u2022 Classical Sampler \u2022 Kevin MacLeod",
+      "url": "audio/004 kevin-macleod - p-i-tchaikovsky-dance-of-the-sugar-plum-fairy.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://freemusicarchive.org/music/Kevin_MacLeod/Classical_Sampler/Dance_of_the_Sugar_Plum_Fairy/"
+    },
+    {
+      "name": "Dream Burst \u2022 V&S Originals \u2022 V&S",
+      "url": "audio/005 v-s - dream-burst.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://github.com/holl-/VnS/blob/main/Original_Music.md"
+    },
+    {
+      "name": "Alla Turca \u2022 Markus Staab",
+      "url": "audio/006 markus-staab - alla-turca.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://musopen.org/music/44015-rondo-alla-turca-from-sonata-kv-331/"
+    },
+    {
+      "name": "Flashy \u2022 Flashy \u2022 Johnathon M. Horner",
+      "url": "audio/007 johnathon-m-horner - flashy.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://freemusicarchive.org/music/beat-mekanik/single/flashy/"
+    },
+    {
+      "name": "Marty Gots a Plan \u2022 Kevin MacLeod",
+      "url": "audio/008 kevin-macleod - marty-gots-a-plan.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://www.youtube.com/audiolibrary"
+    },
+    {
+      "name": "Jade River Dreams \u2022 V&S Originals \u2022 V&S",
+      "url": "audio/009 v-s - jade-river-dreams.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://github.com/holl-/VnS/blob/main/Original_Music.md"
+    },
+    {
+      "name": "Walk In The Park Full \u2022 Audionautix",
+      "url": "audio/010 audionautix - walk-in-the-park-full.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://www.youtube.com/audiolibrary"
+    },
+    {
+      "name": "Celestial Ascent \u2022 V&S Originals \u2022 V&S",
+      "url": "audio/011 v-s - celestial-ascent.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://github.com/holl-/VnS/blob/main/Original_Music.md"
+    },
+    {
+      "name": "The Visitors \u2022 Audionautix",
+      "url": "audio/012 audionautix - the-visitors.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://www.youtube.com/audiolibrary"
+    },
+    {
+      "name": "Constellations Within \u2022 V&S Originals \u2022 V&S",
+      "url": "audio/013 v-s - constellations-within.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://github.com/holl-/VnS/blob/main/Original_Music.md"
+    },
+    {
+      "name": "Antigravity \u2022 V&S Originals \u2022 V&S",
+      "url": "audio/014 v-s - antigravity.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://github.com/holl-/VnS/blob/main/Original_Music.md"
+    },
+    {
+      "name": "Travel Light \u2022 Audionautix",
+      "url": "audio/015 audionautix - travel-light.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://www.youtube.com/audiolibrary"
+    },
+    {
+      "name": "Eclipse Over Eden \u2022 V&S Originals \u2022 V&S",
+      "url": "audio/016 v-s - eclipse-over-eden.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://github.com/holl-/VnS/blob/main/Original_Music.md"
+    },
+    {
+      "name": "Twilight in the Fairy Court \u2022 V&S Originals \u2022 V&S",
+      "url": "audio/017 v-s - twilight-in-the-fairy-court.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://github.com/holl-/VnS/blob/main/Original_Music.md"
+    },
+    {
+      "name": "Merriment Under Lantern Light \u2022 V&S Originals \u2022 V&S",
+      "url": "audio/018 v-s - merriment-under-lantern-light.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://github.com/holl-/VnS/blob/main/Original_Music.md"
+    },
+    {
+      "name": "Stanley Sharke \u2022 Twin Musicom",
+      "url": "audio/019 twin-musicom - stanley-sharke.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://www.youtube.com/audiolibrary"
+    },
+    {
+      "name": "Spring - The Four Seasons \u2022 The Modena Chamber Orchestra",
+      "url": "audio/020 the-modena-chamber-orchestra - spring-the-four-seasons.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://musopen.org/music/14910-the-four-seasons-op-8/"
+    },
+    {
+      "name": "The Rule \u2022 Classical Sampler \u2022 Kevin MacLeod",
+      "url": "audio/021 kevin-macleod - the-rule.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://freemusicarchive.org/music/Kevin_MacLeod/Classical_Sampler/The_Rule/"
+    },
+    {
+      "name": "Alone In The Rain \u2022 Roa",
+      "url": "audio/022 roa - alone-in-the-rain.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://www.audiolibrary.com.co/roa-music/alone-in-the-rain"
+    },
+    {
+      "name": "Ouverture-Suite \u2022 Pro Musica Bohemica",
+      "url": "audio/023 pro-musica-bohemica - ouverture-suite-excerpt.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://musopen.org/music/45514"
+    },
+    {
+      "name": "Echoes of the Village \u2022 V&S Originals \u2022 V&S",
+      "url": "audio/024 v-s - echoes-of-the-village.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://github.com/holl-/VnS/blob/main/Original_Music.md"
+    },
+    {
+      "name": "Temptation March \u2022 Audionautix",
+      "url": "audio/025 audionautix - temptation-march.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://www.youtube.com/audiolibrary"
+    },
+    {
+      "name": "Accord\u00e9ons et Promesses \u2022 V&S Originals \u2022 V&S",
+      "url": "audio/026 v-s - accord-ons-et-promesses.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://github.com/holl-/VnS/blob/main/Original_Music.md"
+    },
+    {
+      "name": "Tempting Fate \u2022 Audionautix",
+      "url": "audio/027 audionautix - tempting-fate.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://www.youtube.com/audiolibrary"
+    },
+    {
+      "name": "The Lowlands \u2022 V&S Originals \u2022 V&S",
+      "url": "audio/028 v-s - the-lowlands.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://github.com/holl-/VnS/blob/main/Original_Music.md"
+    },
+    {
+      "name": "Sails to the Horizon \u2022 V&S Originals \u2022 V&S",
+      "url": "audio/029 v-s - sails-to-the-horizon.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://github.com/holl-/VnS/blob/main/Original_Music.md"
+    },
+    {
+      "name": "Tuesday Night \u2022 Atmospheric \u2022 Amarent",
+      "url": "audio/030 amarent - tuesday-night-original.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://freemusicarchive.org/music/amarent/free-atmospheric-music/tuesday-night/"
+    },
+    {
+      "name": "S\u00e9r\u00e9nade \u2022 Tomh. & claptu",
+      "url": "audio/031 tomh-claptu - s-r-nade.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://www.audiolibrary.com.co/tomh-and-claptu/serenade-ft-dimitri-prokofiev"
+    },
+    {
+      "name": "Nightlight Groove \u2022 V&S Originals \u2022 V&S",
+      "url": "audio/032 v-s - nightlight-groove.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://github.com/holl-/VnS/blob/main/Original_Music.md"
+    },
+    {
+      "name": "Parisian \u2022 Global Sampler \u2022 Kevin MacLeod",
+      "url": "audio/033 kevin-macleod - parisian.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://freemusicarchive.org/music/Kevin_MacLeod/Global_Sampler/Parisian/"
+    },
+    {
+      "name": "Honolulu \u2022 Scandinavianz",
+      "url": "audio/034 scandinavianz - honolulu.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://www.audiolibrary.com.co/scandinavianz/honolulu"
+    },
+    {
+      "name": "Cattails \u2022 Contemporary Sampler \u2022 Kevin MacLeod",
+      "url": "audio/035 kevin-macleod - cattails.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://freemusicarchive.org/music/Kevin_MacLeod/Contemporary_Sampler/Cattails/"
+    },
+    {
+      "name": "Bailando Contigo \u2022 V&S Originals \u2022 V&S",
+      "url": "audio/036 v-s - bailando-contigo.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://github.com/holl-/VnS/blob/main/Original_Music.md"
+    },
+    {
+      "name": "Sunset \u2022 V&S Originals \u2022 V&S",
+      "url": "audio/037 v-s - sunset.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://github.com/holl-/VnS/blob/main/Original_Music.md"
+    },
+    {
+      "name": "Main Battle \u2022 V&S Originals \u2022 V&S",
+      "url": "audio/038 v-s - main-battle.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://github.com/holl-/VnS/blob/main/Original_Music.md"
+    },
+    {
+      "name": "The Angels Weep \u2022 Audionautix",
+      "url": "audio/039 audionautix - the-angels-weep.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://www.youtube.com/audiolibrary"
+    },
+    {
+      "name": "Pink Soul \u2022 Johnathon M. Horner",
+      "url": "audio/040 johnathon-m-horner - pink-soul.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://freemusicarchive.org/music/beat-mekanik/single/pink-soul/"
+    },
+    {
+      "name": "Sous le Soleil de Paris \u2022 V&S Originals \u2022 V&S",
+      "url": "audio/041 v-s - sous-le-soleil-de-paris.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://github.com/holl-/VnS/blob/main/Original_Music.md"
+    },
+    {
+      "name": "Tennessee Hayride \u2022 Audionautix",
+      "url": "audio/042 audionautix - tennessee-hayride.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://www.youtube.com/audiolibrary"
+    },
+    {
+      "name": "J. S. Bach: Toccata and Fugue in D Minor \u2022 Classical Sampler \u2022 Kevin MacLeod",
+      "url": "audio/043 kevin-macleod - j-s-bach-toccata-and-fugue-in-d-minor.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://freemusicarchive.org/music/Kevin_MacLeod/Classical_Sampler/Toccata_and_Fugue_in_D_Minor/"
+    },
+    {
+      "name": "Moonlit Reverie \u2022 V&S Originals \u2022 V&S",
+      "url": "audio/044 v-s - moonlit-reverie.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://github.com/holl-/VnS/blob/main/Original_Music.md"
+    },
+    {
+      "name": "Manic Polka \u2022 Kevin MacLeod",
+      "url": "audio/045 kevin-macleod - manic-polka.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://www.youtube.com/audiolibrary"
+    },
+    {
+      "name": "Brass section \u2022 V&S Originals \u2022 V&S",
+      "url": "audio/046 v-s - brass-section.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://github.com/holl-/VnS/blob/main/Original_Music.md"
+    },
+    {
+      "name": "Radiant Sanctuary \u2022 V&S Originals \u2022 V&S",
+      "url": "audio/047 v-s - radiant-sanctuary.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://github.com/holl-/VnS/blob/main/Original_Music.md"
+    },
+    {
+      "name": "Shining Star \u2022 V&S Originals \u2022 V&S",
+      "url": "audio/048 v-s - shining-star.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://github.com/holl-/VnS/blob/main/Original_Music.md"
+    },
+    {
+      "name": "Rivers of Raga \u2022 V&S Originals \u2022 V&S",
+      "url": "audio/049 v-s - rivers-of-raga.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://github.com/holl-/VnS/blob/main/Original_Music.md"
+    },
+    {
+      "name": "Wandering Horizons \u2022 V&S Originals \u2022 V&S",
+      "url": "audio/050 v-s - wandering-horizons.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://github.com/holl-/VnS/blob/main/Original_Music.md"
+    },
+    {
+      "name": "Christmas \u2022 V&S Originals \u2022 V&S",
+      "url": "audio/051 v-s - christmas.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://github.com/holl-/VnS/blob/main/Original_Music.md"
+    },
+    {
+      "name": "Christmas Is Coming \u2022 Alex- Productions ( No Copyright Music )",
+      "url": "audio/052 alex-productions-no-copyright-music - christmas-is-coming.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://www.audiolibrary.com.co/alex-productions/christmas-is-coming"
+    },
+    {
+      "name": "Erik Satie: Gymnopedie No 1 \u2022 Classical Sampler \u2022 Kevin MacLeod",
+      "url": "audio/053 kevin-macleod - erik-satie-gymnopedie-no-1.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://freemusicarchive.org/music/Kevin_MacLeod/Classical_Sampler/Gymnopedie_No_1/"
+    },
+    {
+      "name": "Journey to Rivendell \u2022 V&S Originals \u2022 V&S",
+      "url": "audio/054 v-s - journey-to-rivendell.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://github.com/holl-/VnS/blob/main/Original_Music.md"
+    },
+    {
+      "name": "By The River \u2022 Atch",
+      "url": "audio/055 atch - by-the-river.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://www.audiolibrary.com.co/atch-and-hotham/by-the-river"
+    },
+    {
+      "name": "Far Far Away \u2022 Far Far Away \u2022 Johnathon M. Horner",
+      "url": "audio/056 johnathon-m-horner - far-far-away.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://freemusicarchive.org/music/beat-mekanik/single/far-far-away/"
+    },
+    {
+      "name": "Christmas In My Heart \u2022 Alex- Productions ( No Copyright Music )",
+      "url": "audio/057 alex-productions-no-copyright-music - christmas-in-my-heart.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://www.audiolibrary.com.co/alex-productions/christmas-in-my-heart"
+    },
+    {
+      "name": "Inhale \u2022 Inhale \u2022 Johnathon M. Horner",
+      "url": "audio/058 johnathon-m-horner - inhale.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://freemusicarchive.org/music/beat-mekanik/single/inhale/"
+    },
+    {
+      "name": "Transcend \u2022 Mix (werbefrei) \u2022 Audionautix",
+      "url": "audio/059 audionautix - transcend.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": null
+    },
+    {
+      "name": "Diversity \u2022 A. Cooper",
+      "url": "audio/060 a-cooper - diversity.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://freemusicarchive.org/music/a-cooper/the-anthony-cooper-abm-vii/diversity-1/"
+    },
+    {
+      "name": "The Dancing Shore \u2022 V&S Originals \u2022 V&S",
+      "url": "audio/061 v-s - the-dancing-shore.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://github.com/holl-/VnS/blob/main/Original_Music.md"
+    },
+    {
+      "name": "The Coal Mine \u2022 Twin Musicom",
+      "url": "audio/062 twin-musicom - the-coal-mine.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://www.youtube.com/audiolibrary"
+    },
+    {
+      "name": "Moonlight Sonata \u2022 Paul Pitman",
+      "url": "audio/063 paul-pitman - moonlight-sonata.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://musopen.org/music/2547"
+    },
+    {
+      "name": "Beach Party \u2022 Global Sampler \u2022 Kevin MacLeod",
+      "url": "audio/064 kevin-macleod - beach-party.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://freemusicarchive.org/music/Kevin_MacLeod/Global_Sampler/Beach_Party/"
+    },
+    {
+      "name": "Horizons of Destiny \u2022 V&S Originals \u2022 V&S",
+      "url": "audio/065 v-s - horizons-of-destiny.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://github.com/holl-/VnS/blob/main/Original_Music.md"
+    },
+    {
+      "name": "Spy \u2022 V&S Originals \u2022 V&S",
+      "url": "audio/066 v-s - spy.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://github.com/holl-/VnS/blob/main/Original_Music.md"
+    },
+    {
+      "name": "Ouverture-Suite \u2022 Pro Musica Bohemica",
+      "url": "audio/067 pro-musica-bohemica - ouverture-suite.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://musopen.org/music/45514"
+    },
+    {
+      "name": "Mermaid \u2022 Kevin MacLeod",
+      "url": "audio/068 kevin-macleod - mermaid.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://www.youtube.com/audiolibrary"
+    },
+    {
+      "name": "Entertainer \u2022 V&S Originals \u2022 V&S",
+      "url": "audio/069 v-s - entertainer.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://github.com/holl-/VnS/blob/main/Original_Music.md"
+    },
+    {
+      "name": "Cambodean Odessy \u2022 Global Sampler \u2022 Kevin MacLeod",
+      "url": "audio/070 kevin-macleod - cambodean-odessy.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://freemusicarchive.org/music/Kevin_MacLeod/Global_Sampler/Cambodian_Odyssey/"
+    },
+    {
+      "name": "Clear Skies \u2022 Snoozybeats",
+      "url": "audio/071 snoozybeats - clear-skies.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://www.audiolibrary.com.co/snoozybeats/clear-skies"
+    },
+    {
+      "name": "Sunrise On Mars \u2022 Audionautix",
+      "url": "audio/072 audionautix - sunrise-on-mars.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://www.youtube.com/audiolibrary"
+    },
+    {
+      "name": "Whispers of the Koto \u2022 V&S Originals \u2022 V&S",
+      "url": "audio/073 v-s - whispers-of-the-koto.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://github.com/holl-/VnS/blob/main/Original_Music.md"
+    },
+    {
+      "name": "Whatdafunk \u2022 Audionautix",
+      "url": "audio/074 audionautix - whatdafunk.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://www.youtube.com/audiolibrary"
+    },
+    {
+      "name": "Off to Osaka \u2022 Jazz Sampler \u2022 Kevin MacLeod",
+      "url": "audio/075 kevin-macleod - off-to-osaka.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://freemusicarchive.org/music/Kevin_MacLeod/Jazz_Sampler/Off_to_Osaka/"
+    },
+    {
+      "name": "Harley Davidson \u2022 Harley Davidson \u2022 Johnathon M. Horner",
+      "url": "audio/076 johnathon-m-horner - harley-davidson.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://freemusicarchive.org/music/beat-mekanik/single/harley-davidson/"
+    },
+    {
+      "name": "Forgotten Toys \u2022 V&S Originals \u2022 V&S",
+      "url": "audio/077 v-s - forgotten-toys.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://github.com/holl-/VnS/blob/main/Original_Music.md"
+    },
+    {
+      "name": "Beyond All Horizons \u2022 V&S Originals \u2022 V&S",
+      "url": "audio/078 v-s - beyond-all-horizons.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://github.com/holl-/VnS/blob/main/Original_Music.md"
+    },
+    {
+      "name": "Jade Waters Flow \u2022 V&S Originals \u2022 V&S",
+      "url": "audio/079 v-s - jade-waters-flow.mp3",
+      "start": 0.0,
+      "end": null,
+      "source": "https://github.com/holl-/VnS/blob/main/Original_Music.md"
+    }
+  ]
+};
+
+// ============================================================================
+// COOKIE MANAGEMENT
+// ============================================================================
+
+function setCookie(name, value, days = 365){
+  const date = new Date();
+  date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+  const expires = "expires=" + date.toUTCString();
+  document.cookie = name + "=" + encodeURIComponent(value) + ";" + expires + ";path=/;SameSite=Lax";
+}
+
+function getCookie(name){
+  const nameEQ = name + "=";
+  const cookies = document.cookie.split(';');
+  for(let i = 0; i < cookies.length; i++){
+    let c = cookies[i].trim();
+    if (c.indexOf(nameEQ) === 0){
+      return decodeURIComponent(c.substring(nameEQ.length));
+    }
+  }
+  return null;
+}
+
+function savePlaybackState(){
+  const track = tracks[currentIndex];
+  if (!track) return;
+
+  const state = {
+    trackIndex: currentIndex,
+    trackName: track.name,
+    majorVersion: PLAYLIST.majorVersion || 0,
+    minorVersion: PLAYLIST.minorVersion || 0
+  };
+
+  setCookie('vibeSeekState', JSON.stringify(state));
+}
+
+function loadPlaybackState(){
+  const cookie = getCookie('vibeSeekState');
+  if (!cookie) return 0;
+
+  try {
+    const state = JSON.parse(cookie);
+
+    // Check if playlist version has changed significantly (major version bump)
+    if (state.majorVersion !== undefined &&
+        PLAYLIST.majorVersion !== undefined &&
+        state.majorVersion !== PLAYLIST.majorVersion){
+      // Major version changed, start from beginning
+      return 0;
+    }
+
+    // Try to find track by name first
+    const trackByName = tracks.findIndex(t => t.name === state.trackName);
+    if (trackByName !== -1){
+      return trackByName;
+    }
+
+    // Fall back to index if name not found
+    if (state.trackIndex >= 0 && state.trackIndex < tracks.length){
+      return state.trackIndex;
+    }
+
+    // Default to first track
+    return 0;
+  } catch(e){
+    return 0;
+  }
+}
+
+// ============================================================================
+// UTILITY FUNCTIONS
+// ============================================================================
+
+function detectSource(url){
+  if (!url) return null;
+  if (url.match(/\.(mp3|ogg|wav)(\?|$)/i)) return 'audio';
+  if (url.includes('youtube.com') || url.includes('youtu.be')) return 'youtube';
+  return null;
+}
+
+function idFromUrl(url){
+  try {
+    const u = new URL(url);
+    if (u.hostname.includes('youtu.be')) return u.pathname.slice(1);
+    if (u.searchParams.get('v')) return u.searchParams.get('v');
+  } catch(e){}
+  return null;
+}
+
+function formatTime(s){
+  if (s == null) return '—';
+  s = Math.floor(s);
+  const m = Math.floor(s/60), sec = s%60;
+  return m+':' + (sec<10? '0'+sec:sec);
+}
+
+// ============================================================================
+// TRACK DATA SETUP
+// ============================================================================
+
+const tracks = (PLAYLIST.tracks || []).map((t, i) => {
+  const source = detectSource(t.url);
+  return {
+    index: i,
+    name: t.name || ('Track ' + (i+1)),
+    source,
+    url: t.url,
+    videoId: source === 'youtube' ? idFromUrl(t.url) : null,
+    start: t.start != null ? Number(t.start) : 0,
+    end: t.end != null ? Number(t.end) : null
+  };
+});
+
+// ============================================================================
+// UI SETUP
+// ============================================================================
+
+const trackListEl = document.getElementById('trackList');
+tracks.forEach(tr => {
+  const el = document.createElement('div');
+  el.className = 'track';
+  el.dataset.index = tr.index;
+  el.innerHTML = '<div class="idx">'+(tr.index+1)+'</div><div class="title">'+tr.name.replace(/[&<>]/g, s=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[s]))+'</div>';
+  el.addEventListener('click', () => playTrack(tr.index, true));
+  trackListEl.appendChild(el);
+});
+
+// ============================================================================
+// PLAYER STATE
+// ============================================================================
+
+let ytPlayer = null;
+let audioPlayer = null;
+let currentIndex = 0;
+let loopTimer = null;
+let ytApiReady = false;
+let ytApiLoading = false;
+
+// ============================================================================
+// YOUTUBE API LOADING
+// ============================================================================
+
+function loadYouTubeAPI(){
+  if (ytApiLoading) return;
+  ytApiLoading = true;
+
+  const script = document.createElement('script');
+  script.src = "https://www.youtube.com/iframe_api";
+  document.head.appendChild(script);
+}
+
+window.onYouTubeIframeAPIReady = function(){
+  ytApiReady = true;
+};
+
+// Load YouTube API if needed
+if (tracks.some(t => t.source === 'youtube')){
+  loadYouTubeAPI();
+}
+
+// ============================================================================
+// PLAYER MANAGEMENT
+// ============================================================================
+
+function createYouTubePlayer(videoId, startSeconds){
+  const container = document.getElementById('player-container');
+  container.innerHTML = '';
+
+  ytPlayer = new YT.Player('player-container', {
+    videoId: videoId,
+    width: 500,
+    height: 80,
+    playerVars: {
+      enablejsapi: 1,
+      modestbranding: 1,
+      rel: 0,
+      controls: 1,
+      iv_load_policy: 3,
+      start: Math.floor(startSeconds || 0)
+    },
+    events: {
+      onReady: (e) => {
+        resizePlayer();
+        e.target.seekTo(startSeconds || 0, true);
+      },
+      onStateChange: onYouTubeStateChange
+    }
+  });
+
+  window.addEventListener('resize', resizePlayer);
+}
+
+function createAudioPlayer(){
+  if (audioPlayer) return audioPlayer;
+
+  const container = document.getElementById('player-container');
+  container.innerHTML = '';
+
+  audioPlayer = document.createElement('audio');
+  audioPlayer.controls = true;
+  audioPlayer.style.width = '100%';
+  audioPlayer.style.height = '56px';
+  audioPlayer.preload = 'auto';
+  container.appendChild(audioPlayer);
+
+  audioPlayer.addEventListener('play', () => {
+    updatePlayButton(true);
+    startLoopWatcher();
+  });
+
+  audioPlayer.addEventListener('pause', () => {
+    updatePlayButton(false);
+    stopLoopWatcher();
+  });
+
+  audioPlayer.addEventListener('ended', () => {
+    // Loop back to start when track ends naturally
+    const track = tracks[currentIndex];
+    audioPlayer.currentTime = track.start || 0;
+    audioPlayer.play().catch(() => {});
+  });
+
+  return audioPlayer;
+}
+
+function destroyYouTubePlayer(){
+  if (ytPlayer && ytPlayer.destroy){
+    ytPlayer.destroy();
+    ytPlayer = null;
+  }
+}
+
+function destroyAudioPlayer(){
+  if (audioPlayer){
+    audioPlayer.pause();
+    audioPlayer.src = '';
+    audioPlayer = null;
+  }
+}
+
+function resizePlayer(){
+  if (!ytPlayer || !ytPlayer.getIframe) return;
+  const wrap = document.getElementById('video-wrap');
+  const width = Math.min(500, wrap.clientWidth);
+  const height = Math.max(56, Math.round(width * (80/500)));
+  const ifr = ytPlayer.getIframe();
+  ifr.width = width;
+  ifr.height = height;
+}
+
+// ============================================================================
+// PLAYBACK CONTROL
+// ============================================================================
+
+function playTrack(index, autoplay = false){
+  if (!tracks[index]) return;
+
+  currentIndex = index;
+  highlightActive();
+  stopLoopWatcher();
+  savePlaybackState();
+
+  const track = tracks[index];
+
+  if (track.source === 'youtube'){
+    playYouTubeTrack(track, autoplay);
+  } else if (track.source === 'audio'){
+    playAudioTrack(track, autoplay);
+  }
+}
+
+function playYouTubeTrack(track, autoplay){
+  // Destroy audio player if it exists
+  destroyAudioPlayer();
+
+  // Wait for YouTube API if not ready
+  if (!ytApiReady){
+    setTimeout(() => playYouTubeTrack(track, autoplay), 100);
+    return;
+  }
+
+  // Create or update YouTube player
+  if (!ytPlayer){
+    createYouTubePlayer(track.videoId, track.start);
+    if (autoplay){
+      setTimeout(() => {
+        if (ytPlayer && ytPlayer.playVideo) ytPlayer.playVideo();
+      }, 300);
+    }
+  } else {
+    ytPlayer.loadVideoById({
+      videoId: track.videoId,
+      startSeconds: track.start || 0
+    });
+    if (autoplay){
+      setTimeout(() => {
+        if (ytPlayer && ytPlayer.playVideo) ytPlayer.playVideo();
+      }, 100);
+    } else {
+      // Even without autoplay, seek to start position
+      setTimeout(() => {
+        if (ytPlayer && ytPlayer.seekTo) ytPlayer.seekTo(track.start || 0, true);
+      }, 100);
+    }
+  }
+}
+
+function playAudioTrack(track, autoplay){
+  // Destroy YouTube player if it exists
+  destroyYouTubePlayer();
+
+  // Create or update audio player
+  const audio = createAudioPlayer();
+  audio.src = track.url;
+  audio.currentTime = track.start || 0;
+
+  if (autoplay){
+    audio.play();
+  }
+}
+
+function togglePlayPause(){
+  const track = tracks[currentIndex];
+
+  if (track.source === 'youtube' && ytPlayer){
+    const state = ytPlayer.getPlayerState();
+    if (state === YT.PlayerState.PLAYING){
+      ytPlayer.pauseVideo();
+    } else {
+      // Ensure we're at the correct position before playing
+      const currentTime = ytPlayer.getCurrentTime();
+      if (currentTime < track.start || (track.end && currentTime >= track.end)){
+        ytPlayer.seekTo(track.start || 0, true);
+      }
+      ytPlayer.playVideo();
+    }
+  } else if (track.source === 'audio' && audioPlayer){
+    if (audioPlayer.paused){
+      // Ensure we're at the correct position before playing
+      if (audioPlayer.currentTime < track.start || (track.end && audioPlayer.currentTime >= track.end)){
+        audioPlayer.currentTime = track.start || 0;
+      }
+      audioPlayer.play();
+    } else {
+      audioPlayer.pause();
+    }
+  } else {
+    // Player doesn't exist yet, create it
+    playTrack(currentIndex, true);
+  }
+}
+
+function getCurrentTime(){
+  const track = tracks[currentIndex];
+  if (track.source === 'youtube' && ytPlayer){
+    return ytPlayer.getCurrentTime();
+  }
+  if (track.source === 'audio' && audioPlayer){
+    return audioPlayer.currentTime;
+  }
+  return 0;
+}
+
+function seekTo(seconds){
+  const track = tracks[currentIndex];
+  if (track.source === 'youtube' && ytPlayer){
+    ytPlayer.seekTo(seconds, true);
+  }
+  if (track.source === 'audio' && audioPlayer){
+    audioPlayer.currentTime = seconds;
+  }
+}
+
+// ============================================================================
+// LOOP WATCHER
+// ============================================================================
+
+function startLoopWatcher(){
+  stopLoopWatcher();
+  loopTimer = setInterval(() => {
+    const track = tracks[currentIndex];
+    const now = getCurrentTime();
+
+    // Loop back to start if we've reached the end
+    if (track.end != null && now >= track.end - 0.1){
+      seekTo(track.start || 0);
+
+      // For audio, resume playing after seek
+      if (track.source === 'audio' && audioPlayer && !audioPlayer.paused){
+        audioPlayer.play().catch(() => {});
+      }
+    }
+
+    // If no end time is set, loop the entire track (for audio)
+    if (track.end == null && track.source === 'audio' && audioPlayer){
+      if (audioPlayer.ended){
+        audioPlayer.currentTime = track.start || 0;
+        audioPlayer.play().catch(() => {});
+      }
+    }
+
+    updateTimeLabel(now, track.end);
+  }, 200);
+}
+
+function stopLoopWatcher(){
+  if (loopTimer){
+    clearInterval(loopTimer);
+    loopTimer = null;
+  }
+}
+
+// ============================================================================
+// UI UPDATES
+// ============================================================================
+
+function highlightActive(){
+  document.querySelectorAll('.track').forEach(el => {
+    el.classList.toggle('active', Number(el.dataset.index) === currentIndex);
+  });
+}
+
+function updatePlayButton(isPlaying){
+  document.getElementById('playBtn').textContent = isPlaying ? '⏸' : '▶';
+}
+
+function updateTimeLabel(currentTime, endTime){
+  const label = document.getElementById('timeLabel');
+  label.textContent = formatTime(currentTime) + (endTime ? (' / ' + formatTime(endTime)) : '');
+}
+
+function onYouTubeStateChange(event){
+  if (event.data === YT.PlayerState.PLAYING){
+    updatePlayButton(true);
+    startLoopWatcher();
+  } else if (event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.ENDED){
+    updatePlayButton(false);
+    stopLoopWatcher();
+
+    // Loop back to start when video ends
+    if (event.data === YT.PlayerState.ENDED){
+      const track = tracks[currentIndex];
+      ytPlayer.seekTo(track.start || 0, true);
+      ytPlayer.playVideo();
+    }
+  }
+}
+
+// ============================================================================
+// BUTTON HANDLERS
+// ============================================================================
+
+document.getElementById('prevBtn').onclick = () => {
+  playTrack((currentIndex - 1 + tracks.length) % tracks.length, true);
+};
+
+document.getElementById('nextBtn').onclick = () => {
+  playTrack((currentIndex + 1) % tracks.length, true);
+};
+
+document.getElementById('playBtn').onclick = togglePlayPause;
+
+// ============================================================================
+// INITIALIZATION
+// ============================================================================
+
+// Load saved track position
+const savedIndex = loadPlaybackState();
+
+// Load first track (or saved track) without autoplay
+if (tracks.length > 0){
+  playTrack(savedIndex, false);
+}
+</script>
+</body>
+</html>

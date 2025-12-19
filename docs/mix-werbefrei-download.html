@@ -1,0 +1,1386 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Vibe & Seek – Mix (werbefrei)</title>
+<style>
+  :root{
+    --bg:#0f1724; --card:#0b1220; --muted:#9aa4b2; --accent:#7c4dff; --text:#e6eef7;
+  }
+  html,body{height:100%;margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial;}
+  body{background:linear-gradient(180deg,#071227 0%, #0b1726 100%);color:var(--text);display:flex;align-items:flex-start;justify-content:center;padding:28px;}
+  .container{width:100%;max-width:980px;}
+  header{display:flex;align-items:center;gap:16px;margin-bottom:18px}
+  h1{margin:0;font-size:20px;letter-spacing:0.2px}
+  .subtitle{color:var(--muted);font-size:13px;margin-top:4px}
+  .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px;padding:14px;box-shadow:0 6px 20px rgba(2,6,23,0.6)}
+  .player-row{display:flex;gap:14px;align-items:center}
+  .video-wrap{flex:0 0 500px;height:80px;max-width:100%}
+  .video-wrap iframe{width:100%;height:100%;border-radius:8px;border:0;background:#000}
+  .controls{flex:1;display:flex;flex-direction:column;gap:10px}
+  .big-controls{display:flex;gap:10px;align-items:center}
+  button{
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.06);
+      color: var(--text);
+      width: 46px;
+      height: 46px;
+      border-radius: 10px;
+      font-size: 20px;
+      line-height: 1;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+  }
+  button.primary{
+    background: linear-gradient(90deg,var(--accent),#00c4ff);
+    border: none;
+    color: #071227;
+    font-weight: 600;
+  }
+  .download-button{
+    background: linear-gradient(90deg,var(--accent),#00c4ff);
+    border: none;
+    color: #071227;
+    border-radius: 10px;
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 12px;
+    display: inline-flex;
+  }
+  .track-list{margin-top:14px;display:flex;gap:12px}
+  .list{background:rgba(255,255,255,0.02);border-radius:10px;padding:10px;flex:1;max-height:360px;overflow:auto}
+  .track{padding:10px;border-radius:8px;display:flex;gap:12px;align-items:center;cursor:pointer}
+  .track:hover{background:rgba(255,255,255,0.02)}
+  .track .idx{width:28px;text-align:center;color:var(--muted);font-size:13px}
+  .track .title{font-size:14px}
+  .track.active{background:linear-gradient(90deg, rgba(124,77,255,0.12), rgba(0,196,255,0.06));box-shadow:0 4px 14px rgba(12,8,32,0.6)}
+  footer{margin-top:10px;color:var(--muted);font-size:13px}
+  @media (max-width:640px){
+    .player-row{flex-direction:column;align-items:stretch}
+    .video-wrap{height:64px;flex-basis:auto}
+    .controls{order:2}
+  }
+  .filename {
+    flex: 1;
+    color: #FFFFFF;
+    font-weight: 100;
+   }
+  .download-icon {
+    width: 16px;
+    height: 16px;
+    color: #000000;
+  }
+  .original-link {
+    color: #007bff;
+    text-decoration: none;
+    font-size: 11px;
+    padding: 6px 8px;
+    border: 1px solid #007bff;
+    border-radius: 6px;
+    transition: all 0.2s;
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+        <h1>Vibe & Seek</h1>
+        <div class="subtitle">Mix (werbefrei)</div>
+      </div>
+    </header>
+
+    <div>
+      <button id="download" class="primary">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+      </button>
+      <span class="filename">Alle herunterladen (ZIP)</span>
+
+      <!-- Progress bar (hidden by default) -->
+      <div id="progress-container" style="display: none; margin-top: 16px;">
+        <div style="background: #e0e0e0; border-radius: 8px; overflow: hidden; height: 24px;">
+          <div id="progress-bar" style="background: linear-gradient(90deg, #4CAF50, #45a049); height: 100%; width: 0%; transition: width 0.3s; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; font-weight: bold;"></div>
+        </div>
+        <div id="progress-text" style="margin-top: 8px; text-align: center; font-size: 14px; color: #666;"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <ol>
+        <li>
+    <a href="audio/001 johnathon-m-horner - nightlight.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Nightlight • Nightlight • Johnathon M. Horner</span>
+    <a href="https://freemusicarchive.org/music/beat-mekanik/single/nightlight/" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/002 john-lopker - tayata-om-bekanze-chant.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Tayata Om Bekanze Chant • John Lopker 2025 • John Lopker</span>
+    <a href="https://freemusicarchive.org/music/john-lopker/meditation-chants/tayata-om-bekanze-chant/" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/003 alex-productions-no-copyright-music - cybernetic-dreams.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Cybernetic Dreams • Alex- Productions ( No Copyright Music )</span>
+    <a href="https://www.audiolibrary.com.co/alex-productions/cybernetic-dreams" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/004 kevin-macleod - p-i-tchaikovsky-dance-of-the-sugar-plum-fairy.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">P. I. Tchaikovsky: Dance of the Sugar Plum Fairy • Classical Sampler • Kevin MacLeod</span>
+    <a href="https://freemusicarchive.org/music/Kevin_MacLeod/Classical_Sampler/Dance_of_the_Sugar_Plum_Fairy/" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/005 v-s - dream-burst.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Dream Burst • V&S Originals • V&S</span>
+    <a href="https://github.com/holl-/VnS/blob/main/Original_Music.md" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/006 markus-staab - alla-turca.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Alla Turca • Markus Staab</span>
+    <a href="https://musopen.org/music/44015-rondo-alla-turca-from-sonata-kv-331/" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/007 johnathon-m-horner - flashy.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Flashy • Flashy • Johnathon M. Horner</span>
+    <a href="https://freemusicarchive.org/music/beat-mekanik/single/flashy/" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/008 kevin-macleod - marty-gots-a-plan.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Marty Gots a Plan • Kevin MacLeod</span>
+    <a href="https://www.youtube.com/audiolibrary" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/009 v-s - jade-river-dreams.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Jade River Dreams • V&S Originals • V&S</span>
+    <a href="https://github.com/holl-/VnS/blob/main/Original_Music.md" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/010 audionautix - walk-in-the-park-full.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Walk In The Park Full • Audionautix</span>
+    <a href="https://www.youtube.com/audiolibrary" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/011 v-s - celestial-ascent.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Celestial Ascent • V&S Originals • V&S</span>
+    <a href="https://github.com/holl-/VnS/blob/main/Original_Music.md" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/012 audionautix - the-visitors.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">The Visitors • Audionautix</span>
+    <a href="https://www.youtube.com/audiolibrary" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/013 v-s - constellations-within.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Constellations Within • V&S Originals • V&S</span>
+    <a href="https://github.com/holl-/VnS/blob/main/Original_Music.md" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/014 v-s - antigravity.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Antigravity • V&S Originals • V&S</span>
+    <a href="https://github.com/holl-/VnS/blob/main/Original_Music.md" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/015 audionautix - travel-light.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Travel Light • Audionautix</span>
+    <a href="https://www.youtube.com/audiolibrary" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/016 v-s - eclipse-over-eden.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Eclipse Over Eden • V&S Originals • V&S</span>
+    <a href="https://github.com/holl-/VnS/blob/main/Original_Music.md" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/017 v-s - twilight-in-the-fairy-court.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Twilight in the Fairy Court • V&S Originals • V&S</span>
+    <a href="https://github.com/holl-/VnS/blob/main/Original_Music.md" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/018 v-s - merriment-under-lantern-light.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Merriment Under Lantern Light • V&S Originals • V&S</span>
+    <a href="https://github.com/holl-/VnS/blob/main/Original_Music.md" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/019 twin-musicom - stanley-sharke.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Stanley Sharke • Twin Musicom</span>
+    <a href="https://www.youtube.com/audiolibrary" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/020 the-modena-chamber-orchestra - spring-the-four-seasons.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Spring - The Four Seasons • The Modena Chamber Orchestra</span>
+    <a href="https://musopen.org/music/14910-the-four-seasons-op-8/" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/021 kevin-macleod - the-rule.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">The Rule • Classical Sampler • Kevin MacLeod</span>
+    <a href="https://freemusicarchive.org/music/Kevin_MacLeod/Classical_Sampler/The_Rule/" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/022 roa - alone-in-the-rain.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Alone In The Rain • Roa</span>
+    <a href="https://www.audiolibrary.com.co/roa-music/alone-in-the-rain" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/023 pro-musica-bohemica - ouverture-suite-excerpt.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Ouverture-Suite • Pro Musica Bohemica</span>
+    <a href="https://musopen.org/music/45514" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/024 v-s - echoes-of-the-village.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Echoes of the Village • V&S Originals • V&S</span>
+    <a href="https://github.com/holl-/VnS/blob/main/Original_Music.md" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/025 audionautix - temptation-march.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Temptation March • Audionautix</span>
+    <a href="https://www.youtube.com/audiolibrary" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/026 v-s - accord-ons-et-promesses.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Accordéons et Promesses • V&S Originals • V&S</span>
+    <a href="https://github.com/holl-/VnS/blob/main/Original_Music.md" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/027 audionautix - tempting-fate.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Tempting Fate • Audionautix</span>
+    <a href="https://www.youtube.com/audiolibrary" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/028 v-s - the-lowlands.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">The Lowlands • V&S Originals • V&S</span>
+    <a href="https://github.com/holl-/VnS/blob/main/Original_Music.md" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/029 v-s - sails-to-the-horizon.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Sails to the Horizon • V&S Originals • V&S</span>
+    <a href="https://github.com/holl-/VnS/blob/main/Original_Music.md" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/030 amarent - tuesday-night-original.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Tuesday Night • Atmospheric • Amarent</span>
+    <a href="https://freemusicarchive.org/music/amarent/free-atmospheric-music/tuesday-night/" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/031 tomh-claptu - s-r-nade.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Sérénade • Tomh. & claptu</span>
+    <a href="https://www.audiolibrary.com.co/tomh-and-claptu/serenade-ft-dimitri-prokofiev" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/032 v-s - nightlight-groove.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Nightlight Groove • V&S Originals • V&S</span>
+    <a href="https://github.com/holl-/VnS/blob/main/Original_Music.md" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/033 kevin-macleod - parisian.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Parisian • Global Sampler • Kevin MacLeod</span>
+    <a href="https://freemusicarchive.org/music/Kevin_MacLeod/Global_Sampler/Parisian/" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/034 scandinavianz - honolulu.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Honolulu • Scandinavianz</span>
+    <a href="https://www.audiolibrary.com.co/scandinavianz/honolulu" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/035 kevin-macleod - cattails.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Cattails • Contemporary Sampler • Kevin MacLeod</span>
+    <a href="https://freemusicarchive.org/music/Kevin_MacLeod/Contemporary_Sampler/Cattails/" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/036 v-s - bailando-contigo.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Bailando Contigo • V&S Originals • V&S</span>
+    <a href="https://github.com/holl-/VnS/blob/main/Original_Music.md" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/037 v-s - sunset.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Sunset • V&S Originals • V&S</span>
+    <a href="https://github.com/holl-/VnS/blob/main/Original_Music.md" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/038 v-s - main-battle.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Main Battle • V&S Originals • V&S</span>
+    <a href="https://github.com/holl-/VnS/blob/main/Original_Music.md" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/039 audionautix - the-angels-weep.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">The Angels Weep • Audionautix</span>
+    <a href="https://www.youtube.com/audiolibrary" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/040 johnathon-m-horner - pink-soul.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Pink Soul • Johnathon M. Horner</span>
+    <a href="https://freemusicarchive.org/music/beat-mekanik/single/pink-soul/" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/041 v-s - sous-le-soleil-de-paris.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Sous le Soleil de Paris • V&S Originals • V&S</span>
+    <a href="https://github.com/holl-/VnS/blob/main/Original_Music.md" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/042 audionautix - tennessee-hayride.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Tennessee Hayride • Audionautix</span>
+    <a href="https://www.youtube.com/audiolibrary" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/043 kevin-macleod - j-s-bach-toccata-and-fugue-in-d-minor.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">J. S. Bach: Toccata and Fugue in D Minor • Classical Sampler • Kevin MacLeod</span>
+    <a href="https://freemusicarchive.org/music/Kevin_MacLeod/Classical_Sampler/Toccata_and_Fugue_in_D_Minor/" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/044 v-s - moonlit-reverie.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Moonlit Reverie • V&S Originals • V&S</span>
+    <a href="https://github.com/holl-/VnS/blob/main/Original_Music.md" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/045 kevin-macleod - manic-polka.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Manic Polka • Kevin MacLeod</span>
+    <a href="https://www.youtube.com/audiolibrary" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/046 v-s - brass-section.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Brass section • V&S Originals • V&S</span>
+    <a href="https://github.com/holl-/VnS/blob/main/Original_Music.md" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/047 v-s - radiant-sanctuary.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Radiant Sanctuary • V&S Originals • V&S</span>
+    <a href="https://github.com/holl-/VnS/blob/main/Original_Music.md" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/048 v-s - shining-star.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Shining Star • V&S Originals • V&S</span>
+    <a href="https://github.com/holl-/VnS/blob/main/Original_Music.md" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/049 v-s - rivers-of-raga.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Rivers of Raga • V&S Originals • V&S</span>
+    <a href="https://github.com/holl-/VnS/blob/main/Original_Music.md" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/050 v-s - wandering-horizons.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Wandering Horizons • V&S Originals • V&S</span>
+    <a href="https://github.com/holl-/VnS/blob/main/Original_Music.md" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/051 v-s - christmas.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Christmas • V&S Originals • V&S</span>
+    <a href="https://github.com/holl-/VnS/blob/main/Original_Music.md" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/052 alex-productions-no-copyright-music - christmas-is-coming.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Christmas Is Coming • Alex- Productions ( No Copyright Music )</span>
+    <a href="https://www.audiolibrary.com.co/alex-productions/christmas-is-coming" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/053 kevin-macleod - erik-satie-gymnopedie-no-1.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Erik Satie: Gymnopedie No 1 • Classical Sampler • Kevin MacLeod</span>
+    <a href="https://freemusicarchive.org/music/Kevin_MacLeod/Classical_Sampler/Gymnopedie_No_1/" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/054 v-s - journey-to-rivendell.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Journey to Rivendell • V&S Originals • V&S</span>
+    <a href="https://github.com/holl-/VnS/blob/main/Original_Music.md" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/055 atch - by-the-river.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">By The River • Atch</span>
+    <a href="https://www.audiolibrary.com.co/atch-and-hotham/by-the-river" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/056 johnathon-m-horner - far-far-away.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Far Far Away • Far Far Away • Johnathon M. Horner</span>
+    <a href="https://freemusicarchive.org/music/beat-mekanik/single/far-far-away/" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/057 alex-productions-no-copyright-music - christmas-in-my-heart.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Christmas In My Heart • Alex- Productions ( No Copyright Music )</span>
+    <a href="https://www.audiolibrary.com.co/alex-productions/christmas-in-my-heart" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/058 johnathon-m-horner - inhale.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Inhale • Inhale • Johnathon M. Horner</span>
+    <a href="https://freemusicarchive.org/music/beat-mekanik/single/inhale/" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/059 audionautix - transcend.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Transcend • Mix (werbefrei) • Audionautix</span>
+    
+</li>
+<li>
+    <a href="audio/060 a-cooper - diversity.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Diversity • A. Cooper</span>
+    <a href="https://freemusicarchive.org/music/a-cooper/the-anthony-cooper-abm-vii/diversity-1/" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/061 v-s - the-dancing-shore.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">The Dancing Shore • V&S Originals • V&S</span>
+    <a href="https://github.com/holl-/VnS/blob/main/Original_Music.md" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/062 twin-musicom - the-coal-mine.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">The Coal Mine • Twin Musicom</span>
+    <a href="https://www.youtube.com/audiolibrary" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/063 paul-pitman - moonlight-sonata.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Moonlight Sonata • Paul Pitman</span>
+    <a href="https://musopen.org/music/2547" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/064 kevin-macleod - beach-party.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Beach Party • Global Sampler • Kevin MacLeod</span>
+    <a href="https://freemusicarchive.org/music/Kevin_MacLeod/Global_Sampler/Beach_Party/" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/065 v-s - horizons-of-destiny.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Horizons of Destiny • V&S Originals • V&S</span>
+    <a href="https://github.com/holl-/VnS/blob/main/Original_Music.md" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/066 v-s - spy.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Spy • V&S Originals • V&S</span>
+    <a href="https://github.com/holl-/VnS/blob/main/Original_Music.md" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/067 pro-musica-bohemica - ouverture-suite.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Ouverture-Suite • Pro Musica Bohemica</span>
+    <a href="https://musopen.org/music/45514" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/068 kevin-macleod - mermaid.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Mermaid • Kevin MacLeod</span>
+    <a href="https://www.youtube.com/audiolibrary" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/069 v-s - entertainer.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Entertainer • V&S Originals • V&S</span>
+    <a href="https://github.com/holl-/VnS/blob/main/Original_Music.md" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/070 kevin-macleod - cambodean-odessy.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Cambodean Odessy • Global Sampler • Kevin MacLeod</span>
+    <a href="https://freemusicarchive.org/music/Kevin_MacLeod/Global_Sampler/Cambodian_Odyssey/" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/071 snoozybeats - clear-skies.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Clear Skies • Snoozybeats</span>
+    <a href="https://www.audiolibrary.com.co/snoozybeats/clear-skies" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/072 audionautix - sunrise-on-mars.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Sunrise On Mars • Audionautix</span>
+    <a href="https://www.youtube.com/audiolibrary" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/073 v-s - whispers-of-the-koto.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Whispers of the Koto • V&S Originals • V&S</span>
+    <a href="https://github.com/holl-/VnS/blob/main/Original_Music.md" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/074 audionautix - whatdafunk.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Whatdafunk • Audionautix</span>
+    <a href="https://www.youtube.com/audiolibrary" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/075 kevin-macleod - off-to-osaka.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Off to Osaka • Jazz Sampler • Kevin MacLeod</span>
+    <a href="https://freemusicarchive.org/music/Kevin_MacLeod/Jazz_Sampler/Off_to_Osaka/" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/076 johnathon-m-horner - harley-davidson.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Harley Davidson • Harley Davidson • Johnathon M. Horner</span>
+    <a href="https://freemusicarchive.org/music/beat-mekanik/single/harley-davidson/" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/077 v-s - forgotten-toys.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Forgotten Toys • V&S Originals • V&S</span>
+    <a href="https://github.com/holl-/VnS/blob/main/Original_Music.md" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/078 v-s - beyond-all-horizons.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Beyond All Horizons • V&S Originals • V&S</span>
+    <a href="https://github.com/holl-/VnS/blob/main/Original_Music.md" class="original-link" target="_blank">🗗</a>
+</li>
+<li>
+    <a href="audio/079 v-s - jade-waters-flow.mp3" download class="download-button" aria-label="Download">
+        <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    </a>
+    <span class="filename">Jade Waters Flow • V&S Originals • V&S</span>
+    <a href="https://github.com/holl-/VnS/blob/main/Original_Music.md" class="original-link" target="_blank">🗗</a>
+</li>
+      </ol>
+    </div>
+
+    <footer>
+      <p><a href="mix-werbefrei.html">Zurück zur Playlist</a></p>
+      <p><a href="index.html">Andere Playlists</a></p>
+      <p>
+        <a rel="license" class="mb-2 inline-flex w-full" target="_blank" href="https://creativecommons.org/publicdomain/zero/1.0/deed.en"><img src="https://licensebuttons.net/l/zero/1.0/88x31.png"></a>
+        <a rel="license" class="mb-2 inline-flex w-full" target="_blank" href="https://creativecommons.org/licenses/by/4.0"><img src="https://licensebuttons.net/l/by/4.0/88x31.png"></a>
+        – Lizenzen und Details zu den Stücken können auf der Ursprungsseite (🗗) nachgeschlagen werden. Ist kein Ursprung angegeben, ist das Stück Public Domain (CC0).</p>
+      <p>Impressum: Philipp Holl – philipp@mholl.de</p>
+    </footer>
+  </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+<script>
+
+const filesToDownload = [
+  {
+    "url": "audio/001 johnathon-m-horner - nightlight.mp3",
+    "outputName": "001 nightlight-nightlight-johnathon-m-horner.mp3"
+  },
+  {
+    "url": "audio/002 john-lopker - tayata-om-bekanze-chant.mp3",
+    "outputName": "002 tayata-om-bekanze-chant-john-lopker-2025-john-lopker.mp3"
+  },
+  {
+    "url": "audio/003 alex-productions-no-copyright-music - cybernetic-dreams.mp3",
+    "outputName": "003 cybernetic-dreams-alex-productions-no-copyright-music.mp3"
+  },
+  {
+    "url": "audio/004 kevin-macleod - p-i-tchaikovsky-dance-of-the-sugar-plum-fairy.mp3",
+    "outputName": "004 p-i-tchaikovsky-dance-of-the-sugar-plum-fairy-classical-sampler-kevin-macleod.mp3"
+  },
+  {
+    "url": "audio/005 v-s - dream-burst.mp3",
+    "outputName": "005 dream-burst-v-s-originals-v-s.mp3"
+  },
+  {
+    "url": "audio/006 markus-staab - alla-turca.mp3",
+    "outputName": "006 alla-turca-markus-staab.mp3"
+  },
+  {
+    "url": "audio/007 johnathon-m-horner - flashy.mp3",
+    "outputName": "007 flashy-flashy-johnathon-m-horner.mp3"
+  },
+  {
+    "url": "audio/008 kevin-macleod - marty-gots-a-plan.mp3",
+    "outputName": "008 marty-gots-a-plan-kevin-macleod.mp3"
+  },
+  {
+    "url": "audio/009 v-s - jade-river-dreams.mp3",
+    "outputName": "009 jade-river-dreams-v-s-originals-v-s.mp3"
+  },
+  {
+    "url": "audio/010 audionautix - walk-in-the-park-full.mp3",
+    "outputName": "010 walk-in-the-park-full-audionautix.mp3"
+  },
+  {
+    "url": "audio/011 v-s - celestial-ascent.mp3",
+    "outputName": "011 celestial-ascent-v-s-originals-v-s.mp3"
+  },
+  {
+    "url": "audio/012 audionautix - the-visitors.mp3",
+    "outputName": "012 the-visitors-audionautix.mp3"
+  },
+  {
+    "url": "audio/013 v-s - constellations-within.mp3",
+    "outputName": "013 constellations-within-v-s-originals-v-s.mp3"
+  },
+  {
+    "url": "audio/014 v-s - antigravity.mp3",
+    "outputName": "014 antigravity-v-s-originals-v-s.mp3"
+  },
+  {
+    "url": "audio/015 audionautix - travel-light.mp3",
+    "outputName": "015 travel-light-audionautix.mp3"
+  },
+  {
+    "url": "audio/016 v-s - eclipse-over-eden.mp3",
+    "outputName": "016 eclipse-over-eden-v-s-originals-v-s.mp3"
+  },
+  {
+    "url": "audio/017 v-s - twilight-in-the-fairy-court.mp3",
+    "outputName": "017 twilight-in-the-fairy-court-v-s-originals-v-s.mp3"
+  },
+  {
+    "url": "audio/018 v-s - merriment-under-lantern-light.mp3",
+    "outputName": "018 merriment-under-lantern-light-v-s-originals-v-s.mp3"
+  },
+  {
+    "url": "audio/019 twin-musicom - stanley-sharke.mp3",
+    "outputName": "019 stanley-sharke-twin-musicom.mp3"
+  },
+  {
+    "url": "audio/020 the-modena-chamber-orchestra - spring-the-four-seasons.mp3",
+    "outputName": "020 spring-the-four-seasons-the-modena-chamber-orchestra.mp3"
+  },
+  {
+    "url": "audio/021 kevin-macleod - the-rule.mp3",
+    "outputName": "021 the-rule-classical-sampler-kevin-macleod.mp3"
+  },
+  {
+    "url": "audio/022 roa - alone-in-the-rain.mp3",
+    "outputName": "022 alone-in-the-rain-roa.mp3"
+  },
+  {
+    "url": "audio/023 pro-musica-bohemica - ouverture-suite-excerpt.mp3",
+    "outputName": "023 ouverture-suite-pro-musica-bohemica.mp3"
+  },
+  {
+    "url": "audio/024 v-s - echoes-of-the-village.mp3",
+    "outputName": "024 echoes-of-the-village-v-s-originals-v-s.mp3"
+  },
+  {
+    "url": "audio/025 audionautix - temptation-march.mp3",
+    "outputName": "025 temptation-march-audionautix.mp3"
+  },
+  {
+    "url": "audio/026 v-s - accord-ons-et-promesses.mp3",
+    "outputName": "026 accord-ons-et-promesses-v-s-originals-v-s.mp3"
+  },
+  {
+    "url": "audio/027 audionautix - tempting-fate.mp3",
+    "outputName": "027 tempting-fate-audionautix.mp3"
+  },
+  {
+    "url": "audio/028 v-s - the-lowlands.mp3",
+    "outputName": "028 the-lowlands-v-s-originals-v-s.mp3"
+  },
+  {
+    "url": "audio/029 v-s - sails-to-the-horizon.mp3",
+    "outputName": "029 sails-to-the-horizon-v-s-originals-v-s.mp3"
+  },
+  {
+    "url": "audio/030 amarent - tuesday-night-original.mp3",
+    "outputName": "030 tuesday-night-atmospheric-amarent.mp3"
+  },
+  {
+    "url": "audio/031 tomh-claptu - s-r-nade.mp3",
+    "outputName": "031 s-r-nade-tomh-claptu.mp3"
+  },
+  {
+    "url": "audio/032 v-s - nightlight-groove.mp3",
+    "outputName": "032 nightlight-groove-v-s-originals-v-s.mp3"
+  },
+  {
+    "url": "audio/033 kevin-macleod - parisian.mp3",
+    "outputName": "033 parisian-global-sampler-kevin-macleod.mp3"
+  },
+  {
+    "url": "audio/034 scandinavianz - honolulu.mp3",
+    "outputName": "034 honolulu-scandinavianz.mp3"
+  },
+  {
+    "url": "audio/035 kevin-macleod - cattails.mp3",
+    "outputName": "035 cattails-contemporary-sampler-kevin-macleod.mp3"
+  },
+  {
+    "url": "audio/036 v-s - bailando-contigo.mp3",
+    "outputName": "036 bailando-contigo-v-s-originals-v-s.mp3"
+  },
+  {
+    "url": "audio/037 v-s - sunset.mp3",
+    "outputName": "037 sunset-v-s-originals-v-s.mp3"
+  },
+  {
+    "url": "audio/038 v-s - main-battle.mp3",
+    "outputName": "038 main-battle-v-s-originals-v-s.mp3"
+  },
+  {
+    "url": "audio/039 audionautix - the-angels-weep.mp3",
+    "outputName": "039 the-angels-weep-audionautix.mp3"
+  },
+  {
+    "url": "audio/040 johnathon-m-horner - pink-soul.mp3",
+    "outputName": "040 pink-soul-johnathon-m-horner.mp3"
+  },
+  {
+    "url": "audio/041 v-s - sous-le-soleil-de-paris.mp3",
+    "outputName": "041 sous-le-soleil-de-paris-v-s-originals-v-s.mp3"
+  },
+  {
+    "url": "audio/042 audionautix - tennessee-hayride.mp3",
+    "outputName": "042 tennessee-hayride-audionautix.mp3"
+  },
+  {
+    "url": "audio/043 kevin-macleod - j-s-bach-toccata-and-fugue-in-d-minor.mp3",
+    "outputName": "043 j-s-bach-toccata-and-fugue-in-d-minor-classical-sampler-kevin-macleod.mp3"
+  },
+  {
+    "url": "audio/044 v-s - moonlit-reverie.mp3",
+    "outputName": "044 moonlit-reverie-v-s-originals-v-s.mp3"
+  },
+  {
+    "url": "audio/045 kevin-macleod - manic-polka.mp3",
+    "outputName": "045 manic-polka-kevin-macleod.mp3"
+  },
+  {
+    "url": "audio/046 v-s - brass-section.mp3",
+    "outputName": "046 brass-section-v-s-originals-v-s.mp3"
+  },
+  {
+    "url": "audio/047 v-s - radiant-sanctuary.mp3",
+    "outputName": "047 radiant-sanctuary-v-s-originals-v-s.mp3"
+  },
+  {
+    "url": "audio/048 v-s - shining-star.mp3",
+    "outputName": "048 shining-star-v-s-originals-v-s.mp3"
+  },
+  {
+    "url": "audio/049 v-s - rivers-of-raga.mp3",
+    "outputName": "049 rivers-of-raga-v-s-originals-v-s.mp3"
+  },
+  {
+    "url": "audio/050 v-s - wandering-horizons.mp3",
+    "outputName": "050 wandering-horizons-v-s-originals-v-s.mp3"
+  },
+  {
+    "url": "audio/051 v-s - christmas.mp3",
+    "outputName": "051 christmas-v-s-originals-v-s.mp3"
+  },
+  {
+    "url": "audio/052 alex-productions-no-copyright-music - christmas-is-coming.mp3",
+    "outputName": "052 christmas-is-coming-alex-productions-no-copyright-music.mp3"
+  },
+  {
+    "url": "audio/053 kevin-macleod - erik-satie-gymnopedie-no-1.mp3",
+    "outputName": "053 erik-satie-gymnopedie-no-1-classical-sampler-kevin-macleod.mp3"
+  },
+  {
+    "url": "audio/054 v-s - journey-to-rivendell.mp3",
+    "outputName": "054 journey-to-rivendell-v-s-originals-v-s.mp3"
+  },
+  {
+    "url": "audio/055 atch - by-the-river.mp3",
+    "outputName": "055 by-the-river-atch.mp3"
+  },
+  {
+    "url": "audio/056 johnathon-m-horner - far-far-away.mp3",
+    "outputName": "056 far-far-away-far-far-away-johnathon-m-horner.mp3"
+  },
+  {
+    "url": "audio/057 alex-productions-no-copyright-music - christmas-in-my-heart.mp3",
+    "outputName": "057 christmas-in-my-heart-alex-productions-no-copyright-music.mp3"
+  },
+  {
+    "url": "audio/058 johnathon-m-horner - inhale.mp3",
+    "outputName": "058 inhale-inhale-johnathon-m-horner.mp3"
+  },
+  {
+    "url": "audio/059 audionautix - transcend.mp3",
+    "outputName": "059 transcend-mix-werbefrei-audionautix.mp3"
+  },
+  {
+    "url": "audio/060 a-cooper - diversity.mp3",
+    "outputName": "060 diversity-a-cooper.mp3"
+  },
+  {
+    "url": "audio/061 v-s - the-dancing-shore.mp3",
+    "outputName": "061 the-dancing-shore-v-s-originals-v-s.mp3"
+  },
+  {
+    "url": "audio/062 twin-musicom - the-coal-mine.mp3",
+    "outputName": "062 the-coal-mine-twin-musicom.mp3"
+  },
+  {
+    "url": "audio/063 paul-pitman - moonlight-sonata.mp3",
+    "outputName": "063 moonlight-sonata-paul-pitman.mp3"
+  },
+  {
+    "url": "audio/064 kevin-macleod - beach-party.mp3",
+    "outputName": "064 beach-party-global-sampler-kevin-macleod.mp3"
+  },
+  {
+    "url": "audio/065 v-s - horizons-of-destiny.mp3",
+    "outputName": "065 horizons-of-destiny-v-s-originals-v-s.mp3"
+  },
+  {
+    "url": "audio/066 v-s - spy.mp3",
+    "outputName": "066 spy-v-s-originals-v-s.mp3"
+  },
+  {
+    "url": "audio/067 pro-musica-bohemica - ouverture-suite.mp3",
+    "outputName": "067 ouverture-suite-pro-musica-bohemica.mp3"
+  },
+  {
+    "url": "audio/068 kevin-macleod - mermaid.mp3",
+    "outputName": "068 mermaid-kevin-macleod.mp3"
+  },
+  {
+    "url": "audio/069 v-s - entertainer.mp3",
+    "outputName": "069 entertainer-v-s-originals-v-s.mp3"
+  },
+  {
+    "url": "audio/070 kevin-macleod - cambodean-odessy.mp3",
+    "outputName": "070 cambodean-odessy-global-sampler-kevin-macleod.mp3"
+  },
+  {
+    "url": "audio/071 snoozybeats - clear-skies.mp3",
+    "outputName": "071 clear-skies-snoozybeats.mp3"
+  },
+  {
+    "url": "audio/072 audionautix - sunrise-on-mars.mp3",
+    "outputName": "072 sunrise-on-mars-audionautix.mp3"
+  },
+  {
+    "url": "audio/073 v-s - whispers-of-the-koto.mp3",
+    "outputName": "073 whispers-of-the-koto-v-s-originals-v-s.mp3"
+  },
+  {
+    "url": "audio/074 audionautix - whatdafunk.mp3",
+    "outputName": "074 whatdafunk-audionautix.mp3"
+  },
+  {
+    "url": "audio/075 kevin-macleod - off-to-osaka.mp3",
+    "outputName": "075 off-to-osaka-jazz-sampler-kevin-macleod.mp3"
+  },
+  {
+    "url": "audio/076 johnathon-m-horner - harley-davidson.mp3",
+    "outputName": "076 harley-davidson-harley-davidson-johnathon-m-horner.mp3"
+  },
+  {
+    "url": "audio/077 v-s - forgotten-toys.mp3",
+    "outputName": "077 forgotten-toys-v-s-originals-v-s.mp3"
+  },
+  {
+    "url": "audio/078 v-s - beyond-all-horizons.mp3",
+    "outputName": "078 beyond-all-horizons-v-s-originals-v-s.mp3"
+  },
+  {
+    "url": "audio/079 v-s - jade-waters-flow.mp3",
+    "outputName": "079 jade-waters-flow-v-s-originals-v-s.mp3"
+  }
+];
+
+document.getElementById("download").onclick = async () => {
+  const btn = document.getElementById("download");
+  const progressContainer = document.getElementById("progress-container");
+  const progressBar = document.getElementById("progress-bar");
+  const progressText = document.getElementById("progress-text");
+
+  // Disable button and show progress
+  btn.disabled = true;
+  progressContainer.style.display = "block";
+
+  try {
+    const zip = new JSZip();
+    const total = filesToDownload.length;
+
+    for (let i = 0; i < total; i++) {
+      const file = filesToDownload[i];
+
+      // Update progress
+      const percent = Math.round(((i + 1) / total) * 100);
+      progressBar.style.width = percent + "%";
+      progressBar.textContent = percent + "%";
+      progressText.textContent = `Downloading ${i + 1} of ${total}: ${file.outputName}`;
+
+      const response = await fetch(file.url);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch no. ${i}: ${file.url}`);
+      }
+      const content = await response.blob();
+      zip.file(file.outputName, content);
+    }
+
+    // Show zipping progress
+    progressText.textContent = "Creating ZIP file...";
+
+    const zipBlob = await zip.generateAsync({ type: "blob" });
+    saveAs(zipBlob, "mix-werbefrei.zip");
+
+    // Success message
+    progressText.textContent = "Download complete!";
+    setTimeout(() => {
+      progressContainer.style.display = "none";
+      progressBar.style.width = "0%";
+      btn.disabled = false;
+    }, 2000);
+
+  } catch (error) {
+    progressText.textContent = "Error: " + error.message;
+    progressText.style.color = "red";
+    setTimeout(() => {
+      progressContainer.style.display = "none";
+      progressBar.style.width = "0%";
+      progressText.style.color = "#666";
+      btn.disabled = false;
+    }, 3000);
+  }
+};
+
+</script>
+</body>
+</html>
